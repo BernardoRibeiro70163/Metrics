@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Diário - Dashboard Pessoal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        .checkbox-item:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + span,
+        .checkbox-item:has(input[type="checkbox"]:checked) {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .data-table {
+            background: white;
+            margin-top: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table h3 {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            margin-left: 5px;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .observacoes-cell {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .observacoes-cell:hover {
+            background: #f0f0f0;
+        }
+
+        .observacoes-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1001;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .observacoes-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .observacoes-popup h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #667eea;
+        }
+
+        .export-import-section {
+            background: white;
+            margin: 20px 30px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .export-btn, .import-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover, .import-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .import-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Tracking Diário</h1>
+            <p>Monitorize as suas métricas de saúde e fitness</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2>Adicionar Nova Entrada</h2>
+                <form id="trackingForm">
+                    <div class="form-group">
+                        <label for="data">Data:</label>
+                        <input type="date" id="data" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="peso">Peso (kg):</label>
+                        <input type="number" id="peso" step="0.1" placeholder="Ex: 70.5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="energia">Energia (1-10):</label>
+                        <input type="number" id="energia" min="1" max="10" placeholder="1-10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sono">Sono (horas):</label>
+                        <input type="number" id="sono" step="0.5" placeholder="Ex: 7.5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="agua">Água (litros):</label>
+                        <input type="number" id="agua" step="0.1" placeholder="Ex: 2.5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tipo de Treino:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Sem treino"> Sem treino
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Corrida"> Corrida
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Bicicleta"> Bicicleta
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Yoga"> Yoga
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Tabata almoço"> Tabata almoço
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Treino de força"> Treino de força
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="treino" value="Treino de abs"> Treino de abs
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rpe">RPE (1-10):</label>
+                        <input type="number" id="rpe" min="1" max="10" placeholder="1-10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="observacoes">Observações:</label>
+                        <textarea id="observacoes" rows="3" placeholder="Notas adicionais..."></textarea>
+                    </div>
+                    
+                    <button type="submit">Adicionar Entrada</button>
+                </form>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>Evolução do Peso</h3>
+                    <canvas id="pesoChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Energia vs Sono</h3>
+                    <canvas id="energiaSonoChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Consumo de Água</h3>
+                    <canvas id="aguaChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Tipos de Treino</h3>
+                    <canvas id="treinoChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-import-section">
+            <button class="export-btn" onclick="exportarCSV()">
+                📤 Exportar CSV
+            </button>
+            <button class="import-btn" onclick="document.getElementById('fileInput').click()">
+                📥 Importar CSV
+            </button>
+            <input type="file" id="fileInput" class="file-input" accept=".csv" onchange="importarCSV(event)">
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="avgPeso">-</div>
+                <div class="stat-label">Peso Médio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgEnergia">-</div>
+                <div class="stat-label">Energia Média</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgSono">-</div>
+                <div class="stat-label">Sono Médio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgAgua">-</div>
+                <div class="stat-label">Água Média</div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <h3>Histórico de Entradas</h3>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Peso</th>
+                        <th>Energia</th>
+                        <th>Sono</th>
+                        <th>Água</th>
+                        <th>Treino</th>
+                        <th>RPE</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 style="color: #667eea; margin-bottom: 20px;">Editar Entrada</h2>
+            <form id="editForm">
+                <input type="hidden" id="editIndex">
+                
+                <div class="form-group">
+                    <label for="editData">Data:</label>
+                    <input type="date" id="editData" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPeso">Peso (kg):</label>
+                    <input type="number" id="editPeso" step="0.1" placeholder="Ex: 70.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editEnergia">Energia (1-10):</label>
+                    <input type="number" id="editEnergia" min="1" max="10" placeholder="1-10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editSono">Sono (horas):</label>
+                    <input type="number" id="editSono" step="0.5" placeholder="Ex: 7.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editAgua">Água (litros):</label>
+                    <input type="number" id="editAgua" step="0.1" placeholder="Ex: 2.5">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo de Treino:</label>
+                    <div class="checkbox-group" id="editTreinoGroup">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Sem treino"> Sem treino
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Corrida"> Corrida
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Bicicleta"> Bicicleta
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Yoga"> Yoga
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Tabata almoço"> Tabata almoço
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Treino de força"> Treino de força
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="editTreino" value="Treino de abs"> Treino de abs
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editRpe">RPE (1-10):</label>
+                    <input type="number" id="editRpe" min="1" max="10" placeholder="1-10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editObservacoes">Observações:</label>
+                    <textarea id="editObservacoes" rows="3" placeholder="Notas adicionais..."></textarea>
+                </div>
+                
+                <button type="submit">Guardar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popup de Observações -->
+    <div id="observacoesOverlay" class="observacoes-overlay" onclick="closeObservacoesPopup()"></div>
+    <div id="observacoesPopup" class="observacoes-popup">
+        <h4 id="observacoesData">Observações</h4>
+        <p id="observacoesTexto"></p>
+    </div>
+
+    <script>
+        // Array para armazenar os dados
+        let trackingData = [];
+        
+        // Charts
+        let pesoChart, energiaSonoChart, aguaChart, treinoChart;
+
+        // Inicializar com data atual
+        document.getElementById('data').valueAsDate = new Date();
+
+        // Form submission
+        document.getElementById('trackingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Capturar treinos selecionados
+            const treinoCheckboxes = document.querySelectorAll('input[name="treino"]:checked');
+            const treinosSelecionados = Array.from(treinoCheckboxes).map(cb => cb.value);
+            
+            const formData = {
+                data: document.getElementById('data').value,
+                peso: parseFloat(document.getElementById('peso').value) || null,
+                energia: parseInt(document.getElementById('energia').value) || null,
+                sono: parseFloat(document.getElementById('sono').value) || null,
+                agua: parseFloat(document.getElementById('agua').value) || null,
+                treino: treinosSelecionados.length > 0 ? treinosSelecionados : ['Sem treino'],
+                rpe: parseInt(document.getElementById('rpe').value) || null,
+                observacoes: document.getElementById('observacoes').value || ''
+            };
+            
+            trackingData.push(formData);
+            trackingData.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            updateCharts();
+            updateTable();
+            updateStats();
+            
+            // Reset form
+            this.reset();
+            document.getElementById('data').valueAsDate = new Date();
+        });
+
+        function updateCharts() {
+            const dates = trackingData.map(d => d.data);
+            
+            // Peso Chart
+            updatePesoChart(dates);
+            
+            // Energia vs Sono Chart
+            updateEnergiaSonoChart(dates);
+            
+            // Água Chart
+            updateAguaChart(dates);
+            
+            // Treino Chart
+            updateTreinoChart();
+        }
+
+        function updatePesoChart(dates) {
+            const pesos = trackingData.map(d => d.peso);
+            
+            if (pesoChart) pesoChart.destroy();
+            
+            const ctx = document.getElementById('pesoChart').getContext('2d');
+            pesoChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Peso (kg)',
+                        data: pesos,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateEnergiaSonoChart(dates) {
+            const energia = trackingData.map(d => d.energia);
+            const sono = trackingData.map(d => d.sono);
+            
+            if (energiaSonoChart) energiaSonoChart.destroy();
+            
+            const ctx = document.getElementById('energiaSonoChart').getContext('2d');
+            energiaSonoChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Energia (1-10)',
+                            data: energia,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Sono (h)',
+                            data: sono,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 0,
+                            max: 10
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 12,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAguaChart(dates) {
+            const agua = trackingData.map(d => d.agua);
+            
+            if (aguaChart) aguaChart.destroy();
+            
+            const ctx = document.getElementById('aguaChart').getContext('2d');
+            aguaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Água (L)',
+                        data: agua,
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTreinoChart() {
+            const treinoCount = {};
+            trackingData.forEach(d => {
+                // Treino agora é um array
+                const treinos = Array.isArray(d.treino) ? d.treino : [d.treino || 'Sem treino'];
+                treinos.forEach(treino => {
+                    treinoCount[treino] = (treinoCount[treino] || 0) + 1;
+                });
+            });
+            
+            if (treinoChart) treinoChart.destroy();
+            
+            const ctx = document.getElementById('treinoChart').getContext('2d');
+            treinoChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(treinoCount),
+                    datasets: [{
+                        data: Object.values(treinoCount),
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#e74c3c',
+                            '#3498db',
+                            '#2ecc71',
+                            '#f39c12',
+                            '#9b59b6',
+                            '#1abc9c'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            trackingData.forEach((data, index) => {
+                // Formatar treinos para exibição
+                const treinosDisplay = Array.isArray(data.treino) 
+                    ? data.treino.join(', ') 
+                    : (data.treino || '-');
+                
+                // Formatar observações (mostrar preview)
+                const observacoesPreview = data.observacoes 
+                    ? (data.observacoes.length > 30 ? data.observacoes.substring(0, 30) + '...' : data.observacoes)
+                    : '-';
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${data.data}</td>
+                    <td>${data.peso ? data.peso + ' kg' : '-'}</td>
+                    <td>${data.energia || '-'}</td>
+                    <td>${data.sono ? data.sono + ' h' : '-'}</td>
+                    <td>${data.agua ? data.agua + ' L' : '-'}</td>
+                    <td>${treinosDisplay}</td>
+                    <td>${data.rpe || '-'}</td>
+                    <td class="observacoes-cell" onclick="showObservacoes('${data.data}', \`${(data.observacoes || '').replace(/`/g, '\\`')}\`)" title="Clique para ver observações completas" style="cursor: pointer; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${observacoesPreview}
+                    </td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editEntry(${index})">Editar</button>
+                        <button class="delete-btn" onclick="deleteEntry(${index})">Eliminar</button>
+                    </td>
+                `;
+            });
+        }
+
+        function updateStats() {
+            const validPesos = trackingData.filter(d => d.peso).map(d => d.peso);
+            const validEnergia = trackingData.filter(d => d.energia).map(d => d.energia);
+            const validSono = trackingData.filter(d => d.sono).map(d => d.sono);
+            const validAgua = trackingData.filter(d => d.agua).map(d => d.agua);
+            
+            document.getElementById('avgPeso').textContent = 
+                validPesos.length ? (validPesos.reduce((a, b) => a + b, 0) / validPesos.length).toFixed(1) + ' kg' : '-';
+            
+            document.getElementById('avgEnergia').textContent = 
+                validEnergia.length ? (validEnergia.reduce((a, b) => a + b, 0) / validEnergia.length).toFixed(1) : '-';
+            
+            document.getElementById('avgSono').textContent = 
+                validSono.length ? (validSono.reduce((a, b) => a + b, 0) / validSono.length).toFixed(1) + ' h' : '-';
+            
+            document.getElementById('avgAgua').textContent = 
+                validAgua.length ? (validAgua.reduce((a, b) => a + b, 0) / validAgua.length).toFixed(1) + ' L' : '-';
+        }
+
+        function deleteEntry(index) {
+            if (confirm('Tem a certeza que deseja eliminar esta entrada?')) {
+                trackingData.splice(index, 1);
+                updateCharts();
+                updateTable();
+                updateStats();
+            }
+        }
+
+        function editEntry(index) {
+            const data = trackingData[index];
+            const modal = document.getElementById('editModal');
+            
+            // Preencher o formulário de edição
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editData').value = data.data;
+            document.getElementById('editPeso').value = data.peso || '';
+            document.getElementById('editEnergia').value = data.energia || '';
+            document.getElementById('editSono').value = data.sono || '';
+            document.getElementById('editAgua').value = data.agua || '';
+            document.getElementById('editRpe').value = data.rpe || '';
+            document.getElementById('editObservacoes').value = data.observacoes || '';
+            
+            // Limpar todos os checkboxes de treino
+            document.querySelectorAll('input[name="editTreino"]').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Marcar treinos selecionados
+            const treinos = Array.isArray(data.treino) ? data.treino : [data.treino || 'Sem treino'];
+            treinos.forEach(treinoValue => {
+                const checkbox = document.querySelector(`input[name="editTreino"][value="${treinoValue}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            // Mostrar modal
+            modal.style.display = 'block';
+        }
+
+        function showObservacoes(data, observacoes) {
+            document.getElementById('observacoesData').textContent = `Observações (${data})`;
+            document.getElementById('observacoesTexto').textContent = observacoes || 'Sem observações registadas';
+            
+            document.getElementById('observacoesOverlay').style.display = 'block';
+            document.getElementById('observacoesPopup').style.display = 'block';
+        }
+
+        function closeObservacoesPopup() {
+            document.getElementById('observacoesOverlay').style.display = 'none';
+            document.getElementById('observacoesPopup').style.display = 'none';
+        }
+
+        // Gerir modal de edição
+        const modal = document.getElementById('editModal');
+        const closeBtn = document.querySelector('.close');
+
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Form de edição
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const index = parseInt(document.getElementById('editIndex').value);
+            
+            // Capturar treinos selecionados
+            const treinoCheckboxes = document.querySelectorAll('input[name="editTreino"]:checked');
+            const treinosSelecionados = Array.from(treinoCheckboxes).map(cb => cb.value);
+            
+            // Atualizar dados
+            trackingData[index] = {
+                data: document.getElementById('editData').value,
+                peso: parseFloat(document.getElementById('editPeso').value) || null,
+                energia: parseInt(document.getElementById('editEnergia').value) || null,
+                sono: parseFloat(document.getElementById('editSono').value) || null,
+                agua: parseFloat(document.getElementById('editAgua').value) || null,
+                treino: treinosSelecionados.length > 0 ? treinosSelecionados : ['Sem treino'],
+                rpe: parseInt(document.getElementById('editRpe').value) || null,
+                observacoes: document.getElementById('editObservacoes').value || ''
+            };
+            
+            // Reordenar por data
+            trackingData.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            // Atualizar visualizações
+            updateCharts();
+            updateTable();
+            updateStats();
+            
+            // Fechar modal
+            modal.style.display = 'none';
+        });
+
+        // Funções de Export/Import CSV
+        function exportarCSV() {
+            if (trackingData.length === 0) {
+                alert('Não há dados para exportar!');
+                return;
+            }
+
+            // Cabeçalho CSV
+            let csvContent = "Data,Peso_kg,Energia_1_10,Sono_h,Agua_L,Treino_Tipo,RPE_1_10,Observacoes\n";
+
+            // Adicionar dados
+            trackingData.forEach(data => {
+                // Formatar treinos (juntar com ponto e vírgula)
+                const treinos = Array.isArray(data.treino) ? data.treino.join(';') : (data.treino || '');
+                
+                // Escapar vírgulas e aspas nas observações
+                const observacoes = (data.observacoes || '').replace(/"/g, '""');
+                
+                const linha = [
+                    data.data,
+                    data.peso || '',
+                    data.energia || '',
+                    data.sono || '',
+                    data.agua || '',
+                    treinos,
+                    data.rpe || '',
+                    `"${observacoes}"`
+                ].join(',');
+                
+                csvContent += linha + "\n";
+            });
+
+            // Criar e fazer download do ficheiro
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `tracking_diario_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function importarCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    const linhas = csv.split('\n');
+                    
+                    // Verificar se tem cabeçalho
+                    if (linhas.length < 2) {
+                        alert('Ficheiro CSV inválido!');
+                        return;
+                    }
+
+                    // Limpar dados existentes (com confirmação)
+                    if (trackingData.length > 0) {
+                        if (!confirm('Isto irá substituir todos os dados existentes. Tem a certeza?')) {
+                            return;
+                        }
+                    }
+
+                    const novosDados = [];
+                    
+                    // Processar cada linha (começar em 1 para saltar cabeçalho)
+                    for (let i = 1; i < linhas.length; i++) {
+                        const linha = linhas[i].trim();
+                        if (!linha) continue;
+
+                        // Dividir por vírgulas (simples - assumindo não há vírgulas nos dados)
+                        const campos = linha.split(',');
+                        
+                        if (campos.length >= 8) {
+                            // Processar treinos (dividir por ponto e vírgula)
+                            const treinosTexto = campos[5].trim();
+                            const treinos = treinosTexto ? treinosTexto.split(';').map(t => t.trim()) : ['Sem treino'];
+                            
+                            // Limpar aspas das observações
+                            const observacoes = campos[7] ? campos[7].replace(/^"|"$/g, '').replace(/""/g, '"') : '';
+
+                            const entrada = {
+                                data: campos[0].trim(),
+                                peso: campos[1].trim() ? parseFloat(campos[1].trim()) : null,
+                                energia: campos[2].trim() ? parseInt(campos[2].trim()) : null,
+                                sono: campos[3].trim() ? parseFloat(campos[3].trim()) : null,
+                                agua: campos[4].trim() ? parseFloat(campos[4].trim()) : null,
+                                treino: treinos,
+                                rpe: campos[6].trim() ? parseInt(campos[6].trim()) : null,
+                                observacoes: observacoes
+                            };
+
+                            novosDados.push(entrada);
+                        }
+                    }
+
+                    if (novosDados.length > 0) {
+                        trackingData = novosDados;
+                        trackingData.sort((a, b) => new Date(a.data) - new Date(b.data));
+                        
+                        updateCharts();
+                        updateTable();
+                        updateStats();
+                        
+                        alert(`Importados ${novosDados.length} registos com sucesso!`);
+                    } else {
+                        alert('Nenhum registo válido encontrado no ficheiro CSV!');
+                    }
+
+                } catch (error) {
+                    alert('Erro ao processar ficheiro CSV: ' + error.message);
+                }
+            };
+
+            reader.readAsText(file, 'UTF-8');
+            
+            // Limpar input
+            event.target.value = '';
+        }
+
+        // Initialize empty charts
+        updateCharts();
+    </script>
+</body>
+</html>
